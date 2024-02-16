@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>String to MD5 UUID Converter</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+<style>
+    /* Your CSS styles from previous example */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 20px;
+        background-color: #f0f0f0;
+    }
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+        font-weight: bold;
+    }
+    input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        margin: 10px 0;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    #outputUuid {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div>
+        <label for="inputString">Enter a string:</label>
+        <input type="text" id="inputString" name="inputString">
+        <button onclick="convertAndDisplay()">Convert to MD5 UUID</button>
+    </div>
+    <div id="outputUuid">MD5 UUID will appear here</div>
+</div>
+<script>
+function stringToMd5Uuid(inputString) {
+    // Use CryptoJS to hash the input string with MD5
+    const hash = CryptoJS.MD5(inputString);
+    const hashHex = hash.toString(CryptoJS.enc.Hex);
+
+    // Format the MD5 hash as a UUID v4-like string (8-4-4-4-12)
+    const uuid = `${hashHex.slice(0, 8)}-${hashHex.slice(8, 12)}-${hashHex.slice(12, 16)}-${hashHex.slice(16, 20)}-${hashHex.slice(20, 32)}`;
+    return uuid;
+}
+
+function convertAndDisplay() {
+    const inputString = document.getElementById('inputString').value;
+    const md5Uuid = stringToMd5Uuid(inputString);
+    document.getElementById('outputUuid').textContent = `MD5 UUID: ${md5Uuid}`;
+}
+</script>
+</body>
+</html>
