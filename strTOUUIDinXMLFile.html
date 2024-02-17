@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XML UUID Processor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 20px;
+        background-color: #f0f0f0;
+    }
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input[type="file"] {
+        margin: 10px 0;
+    }
+    .message {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>XML UUID Processor</h2>
+    <input type="file" id="xmlFileInput" accept=".xml">
+    <div class="message" id="message"></div>
+</div>
+<script>
+function stringToMd5Uuid(inputString) {
+    const hash = CryptoJS.MD5(inputString);
+    const hashHex = hash.toString(CryptoJS.enc.Hex);
+    const uuid = `${hashHex.slice(0, 8)}-${hashHex.slice(8, 12)}-${hashHex.slice(12, 16)}-${hashHex.slice(16, 20)}-${hashHex.slice(20, 32)}`;
+    return uuid;
+}
+
+function isValidUUID(uuid) {
+    const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return regex.test(uuid);
+}
+
+function processXMLFile(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+        const specificElement = xmlDoc.getElementsByTagName("dcc:uniqueIdentifier")[0];
+        if (specificElement && !isValidUUID(specificElement.textContent)) {
+            const originalContent = specificElement.textContent;
+            const newUUID = stringToMd5Uuid(specificElement.textContent);
+            specificElement.textContent = newUUID;
+            const serializer = new XMLSerializer();
+            const modifiedXMLStr = serializer.serializeToString(xmlDoc);
+            downloadModifiedXML(modifiedXMLStr, file.name);
+            document.getElementById('message').innerHTML = `String "${originalContent}" found and converted to:<br>${newUUID}`;
+        } else {
+            document.getElementById('message').textContent = "The specified element is already a UUID or wasn't found.";
+        }
+    };
+    reader.readAsText(file);
+}
+
+function downloadModifiedXML(xmlStr, originalFileName) {
+    const blob = new Blob([xmlStr], { type: 'text/xml' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    const uuidSuffix = stringToMd5Uuid(originalFileName).substring(0, 8); // Use part of a UUID as suffix
+    link.download = `${originalFileName.replace('.xml', '')}-${uuidSuffix}.xml`; // Append UUID suffix to filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function handleFileInputChange(event) {
+    const file = event.target.files[0];
+    if (file) {
+        processXMLFile(file);
+    } else {
+        document.getElementById('message').textContent = "No file selected.";
+    }
+}
+
+window.onload = function() {
+    document.getElementById('xmlFileInput').addEventListener('change', handleFileInputChange);
+};
+</script>
+</body>
+</html>
