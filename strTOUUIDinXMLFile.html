@@ -54,17 +54,23 @@ function processXMLFile(file) {
     reader.onload = function(e) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
-        const specificElement = xmlDoc.getElementsByTagName("dcc:uniqueIdentifier")[0];
-        if (specificElement && !isValidUUID(specificElement.textContent)) {
-            const originalContent = specificElement.textContent;
-            const newUUID = stringToMd5Uuid(specificElement.textContent);
-            specificElement.textContent = newUUID;
-            const serializer = new XMLSerializer();
-            const modifiedXMLStr = serializer.serializeToString(xmlDoc);
-            downloadModifiedXML(modifiedXMLStr, file.name);
-            document.getElementById('message').innerHTML = `String "${originalContent}" found and converted to:<br>${newUUID}`;
+        const specificElement = xmlDoc.getElementsByTagName("dcc:uniqueIdentifier")[0]; // Adjust tag name as needed
+        if (specificElement) {
+            if (!isValidUUID(specificElement.textContent)) {
+                // If content is not a valid UUID, convert it
+                const originalContent = specificElement.textContent;
+                const newUUID = stringToMd5Uuid(specificElement.textContent);
+                specificElement.textContent = newUUID;
+                const serializer = new XMLSerializer();
+                const modifiedXMLStr = serializer.serializeToString(xmlDoc);
+                downloadModifiedXML(modifiedXMLStr, file.name);
+                document.getElementById('message').innerHTML = `Non-UUID string "${originalContent}" found and converted to:<br>${newUUID}`;
+            } else {
+                // If content is already a valid UUID, display it
+                document.getElementById('message').innerHTML = `Found valid UUID:<br>${specificElement.textContent}`;
+            }
         } else {
-            document.getElementById('message').textContent = "The specified element is already a UUID or wasn't found.";
+            document.getElementById('message').textContent = "The specified element ('dcc:uniqueIdentifier') wasn't found.";
         }
     };
     reader.readAsText(file);
